@@ -214,11 +214,3 @@ app.listen(PORT, '0.0.0.0', () => {
 setInterval(() => {
     console.log('Keeping server alive...');
 }, 10 * 60 * 1000); // Setiap 10 menit
-
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received. Shutting down gracefully.');
-    server.close(() => {
-        console.log('Process terminated.');
-        process.exit(0);
-    });
-});
