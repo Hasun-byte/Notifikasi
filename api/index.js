@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, MessageMedia, RemoteAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
+const { MongoStore } = require('wwebjs-mongo');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -11,14 +13,21 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 let qrCodeData = null;
 let isClientReady = false;
 
+// Setup MongoDB for session storage
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://acunxboys612:WwIeGSoIEFigILHi@cluster0.5ct8z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+const store = new MongoStore({ mongoose });
+
 const client = new Client({
-    authStrategy: new LocalAuth(),
+    authStrategy: new RemoteAuth({ store }),
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-gpu'],
+        args: ['--no-sandbox', '--disable-gpu', '--disable-setuid-sandbox'],
     },
 });
 
+// QR Code generation
 client.on('qr', (qr) => {
     console.log('QR Code generated:', qr);
     qrcode.toDataURL(qr, (err, url) => {
@@ -26,11 +35,11 @@ client.on('qr', (qr) => {
             console.error('Error generating QR Code URL:', err);
         } else {
             qrCodeData = url;
-            console.log('QR Code saved successfully.');
         }
     });
 });
 
+// Client events
 client.on('ready', () => {
     console.log('Client is ready!');
     isClientReady = true;
@@ -41,6 +50,7 @@ client.on('disconnected', () => {
     isClientReady = false;
 });
 
+// Initialize WhatsApp client
 client.initialize();
 
 app.post('/send-message', async (req, res) => {
@@ -84,7 +94,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/get-qr', (req, res) => {
-    console.log('Endpoint /get-qr diakses');
     if (qrCodeData) {
         res.json({ success: true, qrCode: qrCodeData });
     } else {
