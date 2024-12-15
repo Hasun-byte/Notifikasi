@@ -20,7 +20,10 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 const store = new MongoStore({ mongoose });
 
 const client = new Client({
-    authStrategy: new RemoteAuth({ store }),
+    authStrategy: new RemoteAuth({
+        store,
+        backupSyncIntervalMs: 60000 // Pastikan nilainya minimal 60000ms (1 menit)
+    }),
     puppeteer: {
         headless: true,
         args: ['--no-sandbox', '--disable-gpu', '--disable-setuid-sandbox'],
