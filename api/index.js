@@ -15,7 +15,9 @@ let isClientReady = false;
 
 // Setup MongoDB for session storage
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://acunxboys612:WwIeGSoIEFigILHi@cluster0.5ct8z.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((error) => console.error('Error connecting to MongoDB:', error));
 
 const store = new MongoStore({ mongoose });
 
